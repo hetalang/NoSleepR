@@ -1,5 +1,7 @@
 name: Continuous Integration
-
+permissions:
+  contents: read
+  
 on:
   push:
     branches: [ master, "*" ]
