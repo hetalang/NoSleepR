@@ -1,5 +1,11 @@
 # NoSleepR
 
+[![Continuous Integration](https://github.com/hetalang/NoSleepR/actions/workflows/ci.yml/badge.svg)](https://github.com/hetalang/NoSleepR/actions/workflows/ci.yml)
+[![GitHub issues](https://img.shields.io/github/issues/hetalang/NoSleepR.svg)](https://GitHub.com/hetalang/NoSleepR/issues/)
+[![GitHub license](https://img.shields.io/github/license/hetalang/NoSleepR.svg)](https://github.com/hetalang/NoSleepR/blob/master/LICENSE.md)
+<!--[![CRAN status](https://www.r-pkg.org/badges/version/NoSleepR)](https://cran.r-project.org/package=NoSleepR)
+[![Downloads](https://cranlogs.r-pkg.org/badges/NoSleepR)](https://cran.r-project.org/package=NoSleepR)-->
+
 Prevent your computer from entering sleep mode while long-running R tasks are running — and automatically restore normal system behavior when they finish or fail.
 
 - **Cross-platform backend**  
