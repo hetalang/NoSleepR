@@ -1,7 +1,7 @@
 nosleep_on_macos <- function(keep_display) {
-   invisible(NULL)
+   stop("NoSleepR: nosleep_on is not implemented for macOS systems.")
 }
 
 nosleep_off_macos <- function() {
-   invisible(NULL)
+   stop("NoSleepR: nosleep_off is not implemented for macOS systems.")
 }
