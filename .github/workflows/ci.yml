@@ -18,13 +18,13 @@ jobs:
       matrix:
         include:
           - { os: windows-latest, r: 'release', cli: 1 }
-          #- { os: macos-latest, r: 'release', cli: 1 }
+          - { os: macos-latest, r: 'release', cli: 1 }
           #- { os: ubuntu-latest, r: 'devel',   cli: 0 }
           #- { os: ubuntu-latest, r: 'release', cli: 0 }
           #- { os: ubuntu-latest, r: 'oldrel',  cli: 0 }
           # exotic architectures
           #- {os: ubuntu-22.04-arm, arch: aarch64, r: 'release', cli: 0}
-          #- {os: macos-13, arch: x64, r: 'release', cli: 1}
+          - {os: macos-13, arch: x64, r: 'release', cli: 1}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
