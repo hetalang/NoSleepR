@@ -18,3 +18,18 @@ pkgdown/
 
 # Local settings
 drafts/
+
+# Compiled objects and libraries
+src/*.o
+src/*.so
+src/*.dll
+src/*.a
+
+*.o
+*.so
+*.dll
+*.a
+
+# R package compiled libs
+/libs/
+/inst/libs/
