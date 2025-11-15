@@ -1,0 +1,20 @@
+# R / RStudio
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Artefacts of R CMD build
+*.Rcheck/
+*.tar.gz
+*.tgz
+*.zip
+
+# Documentation files
+inst/doc/
+doc/
+pkgdown/
+.vignettes/
+
+# Local settings
+drafts/

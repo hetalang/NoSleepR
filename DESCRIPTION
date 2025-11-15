@@ -1,0 +1,16 @@
+Package: NoSleepR
+Title: Prevent System Sleep During Long R Tasks
+Version: 0.1.0
+Authors@R: 
+    person("Evgeny", "Metelkin", , "evgeny.metelkin@gmail.com", role = c("aut", "cre"))
+Description: Provides a cross-platform interface to prevent the operating system from going to sleep while long-running R tasks are executing.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+BugReports: https://github.com/hetalang/NoSleepR/issues
+URL: https://github.com/hetalang/NoSleepR
+Depends: R (>= 3.5.0)
