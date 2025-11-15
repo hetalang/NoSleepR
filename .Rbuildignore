@@ -1,2 +1,4 @@
 ^LICENSE\.md$
 ^drafts$
+^CHANGELOG\.md$
+^\.github$
