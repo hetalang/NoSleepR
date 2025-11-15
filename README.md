@@ -2,7 +2,7 @@
 
 [![Continuous Integration](https://github.com/hetalang/NoSleepR/actions/workflows/ci.yml/badge.svg)](https://github.com/hetalang/NoSleepR/actions/workflows/ci.yml)
 [![GitHub issues](https://img.shields.io/github/issues/hetalang/NoSleepR.svg)](https://GitHub.com/hetalang/NoSleepR/issues/)
-[![GitHub license](https://img.shields.io/github/license/hetalang/NoSleepR.svg)](https://github.com/hetalang/NoSleepR/blob/master/LICENSE.md)
+[![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://github.com/hetalang/NoSleepR/blob/master/LICENSE.md)
 <!--[![CRAN status](https://www.r-pkg.org/badges/version/NoSleepR)](https://cran.r-project.org/package=NoSleepR)
 [![Downloads](https://cranlogs.r-pkg.org/badges/NoSleepR)](https://cran.r-project.org/package=NoSleepR)-->
 
