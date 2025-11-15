@@ -2,4 +2,5 @@
 
 export(nosleep_off)
 export(nosleep_on)
+export(with_nosleep)
 useDynLib(NoSleepR, .registration = TRUE)

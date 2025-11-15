@@ -42,3 +42,16 @@ nosleep_off <- function() {
     stop("NoSleepR: unsupported OS: ", sysname %||% "unknown")
   }
 }
+
+#' Execute an expression while preventing the system from sleeping
+#'
+#' @param expr Expression to execute while nosleep is on.
+#' @param keep_display logical. If TRUE, also prevent the display from sleeping.
+#' @return The result of evaluating `expr`.
+#'
+#' @export
+with_nosleep <- function(expr, keep_display = TRUE) {
+  nosleep_on(keep_display = keep_display)
+  on.exit(nosleep_off(), add = TRUE)
+  force(expr)
+}
