@@ -97,7 +97,7 @@ nosleep_on_macos <- function(keep_display = TRUE) {
   }
 
   # PID should be the last non-empty line
-  pid_str <- tail(out[nzchar(out)], 1L)
+  pid_str <- utils::tail(out[nzchar(out)], 1L)
 
   if (length(pid_str) != 1L) {
     stop("NoSleepR: could not read PID from shell output.")
