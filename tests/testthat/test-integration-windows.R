@@ -1,13 +1,13 @@
 # Enable these integration checks only when explicitly requested
-RUN_CLI_CHECKS <- Sys.getenv("NOSLEEP_CLI_TESTS", "0") == "1"
+RUN_TEST <- Sys.getenv("INTEGRATION_TESTS", "0") == "1"
 
 test_that("Windows: CLI integration checks (opt-in)", {
   # Only for Windows backend
   skip_if_not(.Platform$OS.type == "windows", "Test is Windows-specific.")
 
   # Allow opting in via environment variable
-  if (!RUN_CLI_CHECKS) {
-    skip("CLI checks are disabled (set NOSLEEP_CLI_TESTS=1 to enable).")
+  if (!RUN_TEST) {
+    skip("CLI checks are disabled (set INTEGRATION_TESTS=1 to enable).")
   }
 
   # Require powercfg to be available

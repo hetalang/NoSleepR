@@ -10,6 +10,6 @@ library(testthat)
 library(NoSleepR)
 
 # force enable CLI tests for debugging
-#Sys.setenv(NOSLEEP_CLI_TESTS = "1") 
+#Sys.setenv(INTEGRATION_TESTS = "1") 
 
 test_check("NoSleepR")

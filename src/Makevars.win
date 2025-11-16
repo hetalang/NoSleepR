@@ -1,3 +1,0 @@
-PKG_LIBS =
-
-OBJECTS = nosleep_windows.o

@@ -1,6 +1,4 @@
 test_that("NoSleepR basic API works", {
-  #skip_if_not(.Platform$OS.type == "windows", "Windows backend only")
-
   # nosleep_on/nosleep_off should run without error
   expect_silent(nosleep_on())
   expect_silent(nosleep_off())
@@ -24,8 +22,6 @@ test_that("NoSleepR basic API works", {
 })
 
 test_that("NoSleepR keep_display option works", {
-  skip_if_not(.Platform$OS.type == "windows", "Windows backend only")
-
   # nosleep_on with keep_display = TRUE should run without error
   expect_silent(nosleep_on(keep_display = TRUE))
   expect_silent(nosleep_off())

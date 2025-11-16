@@ -17,18 +17,18 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: windows-latest, r: 'release', cli: 1 }
-          - { os: macos-latest, r: 'release', cli: 1 }
-          #- { os: ubuntu-latest, r: 'devel',   cli: 0 }
-          #- { os: ubuntu-latest, r: 'release', cli: 0 }
-          #- { os: ubuntu-latest, r: 'oldrel',  cli: 0 }
+          - { os: windows-latest, r: 'release', integration_tests: 1 }
+          - { os: macos-latest, r: 'release', integration_tests: 1 }
+          #- { os: ubuntu-latest, r: 'devel',   integration_tests: 0 }
+          #- { os: ubuntu-latest, r: 'release', integration_tests: 0 }
+          #- { os: ubuntu-latest, r: 'oldrel',  integration_tests: 0 }
           # exotic architectures
-          #- {os: ubuntu-22.04-arm, arch: aarch64, r: 'release', cli: 0}
-          - {os: macos-13, arch: x64, r: 'release', cli: 1}
+          #- {os: ubuntu-22.04-arm, arch: aarch64, r: 'release', integration_tests: 0}
+          - {os: macos-15-intel, arch: x64, r: 'release', integration_tests: 1}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      NOSLEEP_CLI_TESTS: ${{ matrix.cli }}
+      INTEGRATION_TESTS: ${{ matrix.integration_tests }}
 
     steps:
       - name: Checkout repository
