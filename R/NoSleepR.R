@@ -3,10 +3,10 @@
 #' Prevent the system from going to sleep while R code is running.
 #'
 #' @param keep_display logical. If TRUE, also prevent the display from sleeping.
-#'   the nosleep state is automatically released.
+#'   Default is FALSE.
 #'
 #' @export
-nosleep_on <- function(keep_display = TRUE) {
+nosleep_on <- function(keep_display = FALSE) {
   sysname <- Sys.info()[["sysname"]]
 
   if (.Platform$OS.type == "windows") {
@@ -50,7 +50,7 @@ nosleep_off <- function() {
 #' @return The result of evaluating `expr`.
 #'
 #' @export
-with_nosleep <- function(expr, keep_display = TRUE) {
+with_nosleep <- function(expr, keep_display = FALSE) {
   nosleep_on(keep_display = keep_display)
   on.exit(nosleep_off(), add = TRUE)
   force(expr)

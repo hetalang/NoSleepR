@@ -4,11 +4,11 @@
 \alias{nosleep_on}
 \title{Turn nosleep on}
 \usage{
-nosleep_on(keep_display = TRUE)
+nosleep_on(keep_display = FALSE)
 }
 \arguments{
 \item{keep_display}{logical. If TRUE, also prevent the display from sleeping.
-the nosleep state is automatically released.}
+Default is FALSE.}
 }
 \description{
 Prevent the system from going to sleep while R code is running.

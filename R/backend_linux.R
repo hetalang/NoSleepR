@@ -52,7 +52,7 @@ terminate_process_linux <- function(pid, grace_ms = 500L) {
 
 # Linux backend: turn nosleep on using systemd-inhibit.
 # keep_display = TRUE -> use "sleep:idle", otherwise only "sleep".
-nosleep_on_linux <- function(keep_display = TRUE) {
+nosleep_on_linux <- function(keep_display = FALSE) {
   if (!have_systemd_inhibit()) {
     warning("NoSleepR: 'systemd-inhibit' not found in PATH; Linux backend is not available.")
     return(invisible(NULL))

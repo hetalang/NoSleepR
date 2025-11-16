@@ -4,7 +4,7 @@
 \alias{with_nosleep}
 \title{Execute an expression while preventing the system from sleeping}
 \usage{
-with_nosleep(expr, keep_display = TRUE)
+with_nosleep(expr, keep_display = FALSE)
 }
 \arguments{
 \item{expr}{Expression to execute while nosleep is on.}

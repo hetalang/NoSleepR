@@ -52,7 +52,7 @@ terminate_process <- function(pid, grace_ms = 500L) {
 
 # macOS backend: turn nosleep on using caffeinate.
 # keep_display = TRUE -> use -d to keep display awake as well.
-nosleep_on_macos <- function(keep_display = TRUE) {
+nosleep_on_macos <- function(keep_display = FALSE) {
   # Require caffeinate to be available, otherwise this backend is not functional.
   if (!have_caffeinate()) {
     stop("NoSleepR: 'caffeinate' binary not found in PATH.")
