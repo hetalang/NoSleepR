@@ -50,7 +50,7 @@ with_nosleep({
 
 ### keep_display
 
-Prevents the display from turning off (default is `TRUE`):
+Prevents the display from turning off (default is `FALSE`):
 
 ```r
 nosleep_on(keep_display = TRUE)
