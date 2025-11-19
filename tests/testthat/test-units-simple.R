@@ -1,9 +1,9 @@
 test_that("NoSleepR basic API works", {
-  # nosleep_on/nosleep_off should run without error
-  expect_silent(nosleep_on())
+  # nosleep_on/nosleep_off should run without hard errors
+  expect_silent(suppressWarnings(nosleep_on()))
   expect_silent(nosleep_off())
 
-  # with_nosleep should execute block and return result
+  # with_nosleep should execute block and return result (handle или NULL, if any)
   result <- with_nosleep({
     2 + 2
   })
@@ -22,7 +22,7 @@ test_that("NoSleepR basic API works", {
 })
 
 test_that("NoSleepR keep_display option works", {
-  # nosleep_on with keep_display = TRUE should run without error
-  expect_silent(nosleep_on(keep_display = TRUE))
+  # nosleep_on with keep_display = TRUE should not crash
+  expect_silent(suppressWarnings(nosleep_on(keep_display = TRUE)))
   expect_silent(nosleep_off())
 })

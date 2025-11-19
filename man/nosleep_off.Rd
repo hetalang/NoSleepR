@@ -4,8 +4,13 @@
 \alias{nosleep_off}
 \title{Turn nosleep off}
 \usage{
-nosleep_off()
+nosleep_off(handle)
+}
+\arguments{
+\item{handle}{Optional \code{"NoSleepR_handle"} object returned by
+\code{nosleep_on()}. If omitted, all active nosleep handles created
+in this session are turned off.}
 }
 \description{
-Turn nosleep off
+Turn off a specific nosleep request or all active requests.
 }

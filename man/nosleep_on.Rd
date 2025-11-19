@@ -10,6 +10,11 @@ nosleep_on(keep_display = FALSE)
 \item{keep_display}{logical. If TRUE, also prevent the display from sleeping.
 Default is FALSE.}
 }
+\value{
+An object of class \code{"NoSleepR_handle"} representing
+the active nosleep request for the current platform.
+}
 \description{
 Prevent the system from going to sleep while R code is running.
+Returns a handle object that can be passed to \code{nosleep_off()}.
 }

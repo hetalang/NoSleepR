@@ -1,46 +1,131 @@
+# Internal state to track active nosleep handles
+.nosleep_state <- new.env(parent = emptyenv())
+.nosleep_state$handles <- list()
+
+# Push a handle to the internal list
+.nosleep_register <- function(handle) {
+  handles <- .nosleep_state$handles
+  handles <- c(handles, list(handle))
+  .nosleep_state$handles <- handles
+  invisible(handle)
+}
+
+# Remove a handle from the internal list
+.nosleep_unregister <- function(handle) {
+  handles <- .nosleep_state$handles
+  .nosleep_state$handles <- Filter(function(x) !identical(x, handle), handles)
+  invisible(NULL)
+}
+
 #' Turn nosleep on
 #'
 #' Prevent the system from going to sleep while R code is running.
+#' Returns a handle object that can be passed to \code{nosleep_off()}.
 #'
 #' @param keep_display logical. If TRUE, also prevent the display from sleeping.
 #'   Default is FALSE.
+#'
+#' @return An object of class \code{"NoSleepR_handle"} representing
+#'   the active nosleep request for the current platform.
 #'
 #' @export
 nosleep_on <- function(keep_display = FALSE) {
   sysname <- Sys.info()[["sysname"]]
 
+  # Function-level variables
+  backend <- NULL
+  data    <- NULL
+
   if (.Platform$OS.type == "windows") {
-    nosleep_on_windows(keep_display)
-
+    backend <- "windows"
+    data    <- nosleep_on_windows(keep_display = keep_display)
   } else if (identical(sysname, "Darwin")) {
-    nosleep_on_macos(keep_display)
-
+    backend <- "macos"
+    data    <- nosleep_on_macos(keep_display = keep_display)
   } else if (identical(sysname, "Linux")) {
-    nosleep_on_linux(keep_display)
-
+    backend <- "linux"
+    data    <- nosleep_on_linux(keep_display = keep_display)
   } else {
     stop("NoSleepR: unsupported OS: ", sysname %||% "unknown")
   }
+
+  # If backend failed to start (e.g. missing systemd-inhibit), it should
+  # already emit a warning and return NULL/NA. In that case we skip
+  # handle creation and return NULL invisibly.
+  if (is.null(data) || (is.atomic(data) && length(data) == 1L && is.na(data))) {
+    return(invisible(NULL))
+  }
+
+  handle <- list(
+    backend = backend,
+    data    = data
+  )
+  class(handle) <- "NoSleepR_handle"
+
+  .nosleep_register(handle)
+
+  invisible(handle)
 }
 
 #' Turn nosleep off
 #'
+#' Turn off a specific nosleep request or all active requests.
+#'
+#' @param handle Optional \code{"NoSleepR_handle"} object returned by
+#'   \code{nosleep_on()}. If omitted, all active nosleep handles created
+#'   in this session are turned off.
+#'
 #' @export
-nosleep_off <- function() {
-  sysname <- Sys.info()[["sysname"]]
-
-  if (.Platform$OS.type == "windows") {
-    nosleep_off_windows()
-
-  } else if (identical(sysname, "Darwin")) {
-    nosleep_off_macos()
-
-  } else if (identical(sysname, "Linux")) {
-    nosleep_off_linux()
-
-  } else {
-    stop("NoSleepR: unsupported OS: ", sysname %||% "unknown")
+nosleep_off <- function(handle) {
+  # Case 1: no argument passed at all -> turn off ALL
+  if (missing(handle)) {
+    return(nosleep_off_all())
   }
+
+  # Case 2: handle explicitly NULL -> do nothing
+  if (is.null(handle)) {
+    return(invisible(NULL))
+  }
+
+  # Case 3: invalid handle type -> error
+  if (!inherits(handle, "NoSleepR_handle")) {
+    stop("NoSleepR: 'handle' must be a NoSleepR_handle object or NULL.")
+  }
+
+  # Case 4: normal handle
+
+  # Function-level variables
+  backend <- handle$backend
+  data    <- handle$data
+
+  sysname <- Sys.info()[["sysname"]]
+  if (.Platform$OS.type == "windows" && identical(backend, "windows")) {
+    # data is expected to be an externalptr from the Windows backend
+    nosleep_off_windows(data)
+  } else if (identical(sysname, "Darwin") && identical(backend, "macos")) {
+    nosleep_off_macos(data)
+  } else if (identical(sysname, "Linux") && identical(backend, "linux")) {
+    nosleep_off_linux(data)
+  } else {
+    # handle from another platform or incompatible backend
+    stop("NoSleepR: handle backend '", backend, "' is not compatible with current OS: ", sysname %||% "unknown")
+  }
+
+  .nosleep_unregister(handle)
+  invisible(NULL)
+}
+
+# Turn off all active nosleep requests
+nosleep_off_all <- function() {
+  handles <- .nosleep_state$handles
+  for (h in handles) {
+    if (inherits(h, "NoSleepR_handle")) {
+      nosleep_off(h)
+    }
+  }
+  .nosleep_state$handles <- list()
+
+  invisible(NULL)
 }
 
 #' Execute an expression while preventing the system from sleeping
@@ -51,7 +136,11 @@ nosleep_off <- function() {
 #'
 #' @export
 with_nosleep <- function(expr, keep_display = FALSE) {
-  nosleep_on(keep_display = keep_display)
-  on.exit(nosleep_off(), add = TRUE)
+  handle <- nosleep_on(keep_display = keep_display)
+ 
+  if (inherits(handle, "NoSleepR_handle")) {
+    on.exit(nosleep_off(handle), add = TRUE)
+  }
+
   force(expr)
 }

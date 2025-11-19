@@ -1,5 +1,5 @@
 // src/nosleep_windows.c
-// Windows backend for NoSleepR using Power Request API.
+// Windows backend for NoSleepR using Power Request API with per-request handles.
 
 #ifdef _WIN32
 
@@ -8,74 +8,118 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 
-// Global state: power request handle and display flag.
-// g_req_handle is NULL when no request is active.
-static HANDLE g_req_handle  = NULL;
-static BOOL   g_req_display = FALSE;
+// Per-request state stored behind an external pointer.
+// Each NoSleepRequest corresponds to a separate Power Request handle.
+typedef struct {
+    HANDLE handle;
+    BOOL   display;
+} NoSleepRequest;
 
-// .Call interface: NoSleepR_nosleep_on(keep_display = TRUE/FALSE)
-SEXP NoSleepR_nosleep_on(SEXP keep_display_sexp) {
+// Finalizer: called when the R external pointer is garbage-collected.
+// Ensures that the Power Request is cleared and handle is closed.
+static void nosleep_finalizer(SEXP ext) {
+    NoSleepRequest *req = (NoSleepRequest*) R_ExternalPtrAddr(ext);
+    if (req == NULL) {
+        return;
+    }
+
+    if (req->handle != NULL) {
+        // Clear system-required request
+        (void) PowerClearRequest(req->handle, PowerRequestSystemRequired);
+
+        // Clear display-required request if it was set
+        if (req->display) {
+            (void) PowerClearRequest(req->handle, PowerRequestDisplayRequired);
+        }
+
+        (void) CloseHandle(req->handle);
+        req->handle = NULL;
+    }
+
+    Free(req);
+    R_ClearExternalPtr(ext);
+}
+
+// .Call interface:
+//   SEXP NoSleepR_request_create(SEXP keep_display_sexp)
+//
+// On success:
+//   - returns an external pointer to NoSleepRequest,
+//   - with a registered finalizer that will clear/close the request.
+//
+// On failure (e.g. PowerCreateRequest / PowerSetRequest failed):
+//   - returns R_NilValue (NULL in R).
+//   - No warning here: R wrapper is responsible for emitting a warning.
+SEXP NoSleepR_request_create(SEXP keep_display_sexp) {
     if (!isLogical(keep_display_sexp) || LENGTH(keep_display_sexp) < 1) {
-        Rf_error("NoSleepR_nosleep_on: 'keep_display' must be a logical scalar.");
+        Rf_error("NoSleepR_request_create: 'keep_display' must be a logical scalar.");
     }
 
     int keep_display = LOGICAL(keep_display_sexp)[0];
 
-    // Create power request handle if it does not exist.
-    if (g_req_handle == NULL) {
-        REASON_CONTEXT context;
+    REASON_CONTEXT context;
+    ZeroMemory(&context, sizeof(REASON_CONTEXT));
+    context.Version = POWER_REQUEST_CONTEXT_VERSION;           // usually 0
+    context.Flags   = POWER_REQUEST_CONTEXT_SIMPLE_STRING;     // simple reason string
+    context.Reason.SimpleReasonString = L"Set by user with NoSleepR";
 
-        // Initialize context structure.
-        ZeroMemory(&context, sizeof(REASON_CONTEXT));
-        context.Version = POWER_REQUEST_CONTEXT_VERSION;            // usually 0
-        context.Flags   = POWER_REQUEST_CONTEXT_SIMPLE_STRING;      // simple reason string
-        context.Reason.SimpleReasonString = L"Set by user with NoSleepR";
-
-        HANDLE h = PowerCreateRequest(&context);
-        if (h == NULL) {
-            Rf_error("NoSleepR_nosleep_on: PowerCreateRequest failed.");
-        }
-
-        g_req_handle = h;
-    }
-
-    // Activate system-required request.
-    if (!PowerSetRequest(g_req_handle, PowerRequestSystemRequired)) {
-        Rf_error("NoSleepR_nosleep_on: PowerSetRequest(SystemRequired) failed.");
-    }
-
-    // Optionally keep the display on.
-    if (keep_display && !g_req_display) {
-        if (!PowerSetRequest(g_req_handle, PowerRequestDisplayRequired)) {
-            Rf_error("NoSleepR_nosleep_on: PowerSetRequest(DisplayRequired) failed.");
-        }
-        g_req_display = TRUE;
-    }
-
-    return R_NilValue;
-}
-
-// .Call interface: NoSleepR_nosleep_off()
-SEXP NoSleepR_nosleep_off(void) {
-    // If no handle, nothing to do.
-    if (g_req_handle == NULL) {
+    HANDLE h = PowerCreateRequest(&context);
+    if (h == NULL) {
+        // Power Request API is unavailable or failed.
+        // R wrapper should detect NULL and emit a warning.
         return R_NilValue;
     }
 
-    HANDLE h = g_req_handle;
-
-    // Clear system-required request (ignore return value).
-    (void)PowerClearRequest(h, PowerRequestSystemRequired);
-
-    // Clear display-required request if active (ignore return value).
-    if (g_req_display) {
-        (void)PowerClearRequest(h, PowerRequestDisplayRequired);
-        g_req_display = FALSE;
+    // Activate system-required request.
+    if (!PowerSetRequest(h, PowerRequestSystemRequired)) {
+        (void) CloseHandle(h);
+        return R_NilValue;
     }
 
-    // Close handle and reset global state.
-    (void)CloseHandle(h);
-    g_req_handle = NULL;
+    BOOL display = FALSE;
+    if (keep_display) {
+        if (!PowerSetRequest(h, PowerRequestDisplayRequired)) {
+            (void) PowerClearRequest(h, PowerRequestSystemRequired);
+            (void) CloseHandle(h);
+            return R_NilValue;
+        }
+        display = TRUE;
+    }
+
+    NoSleepRequest *req = (NoSleepRequest*) Calloc(1, NoSleepRequest);
+    req->handle  = h;
+    req->display = display;
+
+    SEXP ext = R_MakeExternalPtr((void*) req, R_NilValue, R_NilValue);
+    R_RegisterCFinalizerEx(ext, nosleep_finalizer, TRUE);
+
+    return ext;
+}
+
+// .Call interface:
+//   SEXP NoSleepR_request_clear(SEXP ext)
+//
+// Clears and closes a specific NoSleepRequest associated with the given
+// external pointer. Safe to call multiple times; subsequent calls become no-ops.
+SEXP NoSleepR_request_clear(SEXP ext) {
+    NoSleepRequest *req = (NoSleepRequest*) R_ExternalPtrAddr(ext);
+    if (req == NULL) {
+        return R_NilValue;
+    }
+
+    if (req->handle != NULL) {
+        (void) PowerClearRequest(req->handle, PowerRequestSystemRequired);
+
+        if (req->display) {
+            (void) PowerClearRequest(req->handle, PowerRequestDisplayRequired);
+        }
+
+        (void) CloseHandle(req->handle);
+        req->handle = NULL;
+    }
+
+    Free(req);
+    R_ClearExternalPtr(ext);
 
     return R_NilValue;
 }
@@ -83,13 +127,12 @@ SEXP NoSleepR_nosleep_off(void) {
 // Registration table for .Call
 
 static const R_CallMethodDef CallEntries[] = {
-    {"NoSleepR_nosleep_on",  (DL_FUNC) &NoSleepR_nosleep_on,  1},
-    {"NoSleepR_nosleep_off", (DL_FUNC) &NoSleepR_nosleep_off, 0},
+    {"NoSleepR_request_create", (DL_FUNC) &NoSleepR_request_create, 1},
+    {"NoSleepR_request_clear",  (DL_FUNC) &NoSleepR_request_clear,  1},
     {NULL, NULL, 0}
 };
 
 void R_init_NoSleepR(DllInfo *dll) {
-    // Register native routines and disable dynamic symbol lookup.
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }
@@ -102,17 +145,19 @@ void R_init_NoSleepR(DllInfo *dll) {
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 
-SEXP NoSleepR_nosleep_on(SEXP keep_display_sexp) {
-    Rf_error("NoSleepR_nosleep_on: Windows backend is not available on this platform.");
+SEXP NoSleepR_request_create(SEXP keep_display_sexp) {
+    (void) keep_display_sexp;
+    Rf_error("NoSleepR_request_create: Windows backend is not available on this platform.");
 }
 
-SEXP NoSleepR_nosleep_off(void) {
-    Rf_error("NoSleepR_nosleep_off: Windows backend is not available on this platform.");
+SEXP NoSleepR_request_clear(SEXP ext) {
+    (void) ext;
+    Rf_error("NoSleepR_request_clear: Windows backend is not available on this platform.");
 }
 
 void R_init_NoSleepR(DllInfo *dll) {
-    // No registration needed on non-Windows platforms.
-    (void)dll;
+    (void) dll;
+    // No registration for non-Windows; this file is not used there.
 }
 
 #endif

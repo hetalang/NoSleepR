@@ -72,7 +72,7 @@ with_nosleep(keep_display = TRUE, {
 
 1. On Windows devices with **Modern Standby (S0ix) running on battery power (DC mode)** the OS may ignore sleep prevention signals after a 5 minutes of inactivity if the screen is turned off.
     - **Connect charger (AC mode)** to avoid this.
-    - **OR use** `keep_display=true` to keep the screen awake.
+    - **OR use** `keep_display=TRUE` to keep the screen awake.
 
 ## Related packages
 
