@@ -15,5 +15,15 @@ with_nosleep(expr, keep_display = FALSE)
 The result of evaluating \code{expr}.
 }
 \description{
-Execute an expression while preventing the system from sleeping
+Helper that automatically brackets an expression with \code{nosleep_on()}
+and \code{nosleep_off()}.
+}
+\examples{
+\dontrun{
+with_nosleep({
+  message("Downloading a large file…")
+  download_large_file()
+})
+}
+
 }

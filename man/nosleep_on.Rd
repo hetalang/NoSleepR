@@ -7,14 +7,44 @@
 nosleep_on(keep_display = FALSE)
 }
 \arguments{
-\item{keep_display}{logical. If TRUE, also prevent the display from sleeping.
-Default is FALSE.}
+\item{keep_display}{logical. If \code{TRUE}, also prevent the display from
+powering off (when supported by the underlying OS). Default is \code{FALSE}.}
 }
 \value{
-An object of class \code{"NoSleepR_handle"} representing
-the active nosleep request for the current platform.
+An object of class \code{"NoSleepR_handle"} that stores the active
+nosleep request for the current platform. Invisible \code{NULL} is
+returned when the request could not be established.
 }
 \description{
-Prevent the system from going to sleep while R code is running.
-Returns a handle object that can be passed to \code{nosleep_off()}.
+Prevent the operating system from suspending or putting the display to sleep
+while long-running R work is executing.
+}
+\details{
+The returned handle must stay alive for as long as you want the nosleep
+request to remain in effect. Call \code{nosleep_off()} with the handle to
+release the underlying system resource as soon as the protected work is
+complete.
+
+If no backend is available for the current platform (e.g., missing
+dependencies), a warning is issued and invisible \code{NULL} is returned.
+}
+\examples{
+
+# Simple usage
+\dontrun{
+nosleep_on()
+long_running_job()
+nosleep_off()
+
+# Handle-based usage
+h <- nosleep_on()
+long_running_job()
+nosleep_off(h)
+
+# Keep the display awake as well (when supported)
+h <- nosleep_on(keep_display = TRUE)
+Sys.sleep(100)  # simulate long job
+nosleep_off(h)
+}
+
 }

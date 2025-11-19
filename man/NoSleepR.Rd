@@ -6,19 +6,48 @@
 \alias{NoSleepR}
 \title{NoSleepR: Prevent system sleep during long R tasks}
 \description{
-NoSleepR provides a cross-platform interface to prevent the operating system
-from going to sleep while long-running R code is executing.
+NoSleepR exposes a tiny, cross-platform API that temporarily disables system
+sleep while your R script performs a long-running operation. The package
+delegates to the native inhibition mechanisms shipped with each platform
+(Win32 power requests, \code{caffeinate}, or \code{systemd-inhibit}) and automatically
+tears them down once you are done.
 }
-\seealso{
-Useful links:
+\details{
+\strong{Core helpers}
 \itemize{
-  \item \url{https://github.com/hetalang/NoSleepR}
-  \item Report bugs at \url{https://github.com/hetalang/NoSleepR/issues}
+\item \code{\link[=nosleep_on]{nosleep_on()}} — establish a sleep-prevention request and keep the
+handle alive for as long as the work runs.
+\item \code{\link[=nosleep_off]{nosleep_off()}} — release a specific handle or clear all active
+ones when called without arguments.
+\item \code{\link[=with_nosleep]{with_nosleep()}} — wrap a code block so that NoSleepR turns itself
+on before the block executes and reliably shuts down after it completes
+or errors.
 }
 
+All helpers accept the optional \code{keep_display} flag, allowing you to request
+that the monitor stays on (when supported by the OS) in addition to the
+system-wide sleep prevention.
+}
+\section{Typical workflow}{
+
+\enumerate{
+\item Call \code{nosleep_on()} (optionally with \code{keep_display = TRUE}) right
+before a long computation or data transfer.
+\item Run the expensive task.
+\item Explicitly stop the request with \code{nosleep_off()} as soon as the work
+finishes, or rely on \code{with_nosleep()} to bracket the code block.
+}
+
+NoSleepR automatically cleans up pending requests when the R session ends,
+but it is still best practice to explicitly call \code{nosleep_off()} so that the
+operating system can resume managing power immediately after the protected
+job completes.
+}
+
+\seealso{
+\url{https://github.com/hetalang/NoSleepR}
 }
 \author{
 \strong{Maintainer}: Evgeny Metelkin \email{evgeny.metelkin@gmail.com}
 
 }
-\keyword{internal}

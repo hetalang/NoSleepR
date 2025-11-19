@@ -9,8 +9,26 @@ nosleep_off(handle)
 \arguments{
 \item{handle}{Optional \code{"NoSleepR_handle"} object returned by
 \code{nosleep_on()}. If omitted, all active nosleep handles created
-in this session are turned off.}
+in this session are turned off. Passing \code{NULL} is treated as a
+no-op.}
+}
+\value{
+Invisibly returns \code{NULL}.
 }
 \description{
-Turn off a specific nosleep request or all active requests.
+Turn off a specific nosleep request or, if no handle is supplied, every
+active request opened by the current R session.
+}
+\examples{
+\dontrun{
+h <- nosleep_on()
+# ... do work ...
+nosleep_off(h)
+
+# Equivalent shortcut to clear everything
+nosleep_on()
+nosleep_on()
+nosleep_off()
+}
+
 }

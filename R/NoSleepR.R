@@ -17,16 +17,47 @@
   invisible(NULL)
 }
 
+
+
 #' Turn nosleep on
 #'
-#' Prevent the system from going to sleep while R code is running.
-#' Returns a handle object that can be passed to \code{nosleep_off()}.
+#' Prevent the operating system from suspending or putting the display to sleep
+#' while long-running R work is executing.
 #'
-#' @param keep_display logical. If TRUE, also prevent the display from sleeping.
-#'   Default is FALSE.
+#' @param keep_display logical. If \code{TRUE}, also prevent the display from
+#'   powering off (when supported by the underlying OS). Default is \code{FALSE}.
 #'
-#' @return An object of class \code{"NoSleepR_handle"} representing
-#'   the active nosleep request for the current platform.
+#' @details
+#' The returned handle must stay alive for as long as you want the nosleep
+#' request to remain in effect. Call \code{nosleep_off()} with the handle to
+#' release the underlying system resource as soon as the protected work is
+#' complete.
+#' 
+#' If no backend is available for the current platform (e.g., missing
+#' dependencies), a warning is issued and invisible \code{NULL} is returned.
+#'
+#' @return An object of class \code{"NoSleepR_handle"} that stores the active
+#'   nosleep request for the current platform. Invisible \code{NULL} is
+#'   returned when the request could not be established.
+#'
+#' @examples
+#' 
+#' # Simple usage
+#' \dontrun{
+#' nosleep_on()
+#' long_running_job()
+#' nosleep_off()
+#' 
+#' # Handle-based usage
+#' h <- nosleep_on()
+#' long_running_job()
+#' nosleep_off(h)
+#'
+#' # Keep the display awake as well (when supported)
+#' h <- nosleep_on(keep_display = TRUE)
+#' Sys.sleep(100)  # simulate long job
+#' nosleep_off(h)
+#' }
 #'
 #' @export
 nosleep_on <- function(keep_display = FALSE) {
@@ -69,11 +100,27 @@ nosleep_on <- function(keep_display = FALSE) {
 
 #' Turn nosleep off
 #'
-#' Turn off a specific nosleep request or all active requests.
+#' Turn off a specific nosleep request or, if no handle is supplied, every
+#' active request opened by the current R session.
 #'
 #' @param handle Optional \code{"NoSleepR_handle"} object returned by
 #'   \code{nosleep_on()}. If omitted, all active nosleep handles created
-#'   in this session are turned off.
+#'   in this session are turned off. Passing \code{NULL} is treated as a
+#'   no-op.
+#'
+#' @return Invisibly returns \code{NULL}.
+#'
+#' @examples
+#' \dontrun{
+#' h <- nosleep_on()
+#' # ... do work ...
+#' nosleep_off(h)
+#'
+#' # Equivalent shortcut to clear everything
+#' nosleep_on()
+#' nosleep_on()
+#' nosleep_off()
+#' }
 #'
 #' @export
 nosleep_off <- function(handle) {
@@ -130,9 +177,21 @@ nosleep_off_all <- function() {
 
 #' Execute an expression while preventing the system from sleeping
 #'
+#' Helper that automatically brackets an expression with \code{nosleep_on()}
+#' and \code{nosleep_off()}.
+#'
 #' @param expr Expression to execute while nosleep is on.
 #' @param keep_display logical. If TRUE, also prevent the display from sleeping.
-#' @return The result of evaluating `expr`.
+#'
+#' @return The result of evaluating \code{expr}.
+#'
+#' @examples
+#' \dontrun{
+#' with_nosleep({
+#'   message("Downloading a large file…")
+#'   download_large_file()
+#' })
+#' }
 #'
 #' @export
 with_nosleep <- function(expr, keep_display = FALSE) {
