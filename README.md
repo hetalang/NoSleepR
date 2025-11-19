@@ -14,7 +14,8 @@ Prevent your computer from entering sleep mode while long-running R tasks are ru
   - macOS: `caffeinate`
   - Linux: `systemd-inhibit`
 - **Simple API**: block-style or manual on/off.
-- **Safe by design**: resets on exit; optional timeout.
+- **Safe by design**: resets on exit or error.
+- Optional **keep_display** mode to prevent screen from turning off.
 
 ## Installation
 

@@ -1,7 +1,4 @@
-# Internal state for macOS backend stored in an environment.
-# We mutate the environment contents instead of rebinding package globals.
-.nosleep_macos_state <- new.env(parent = emptyenv())
-.nosleep_macos_state$pid <- NA_integer_
+# macos backend: caffeinate process management
 
 # Check if caffeinate utility is available in PATH.
 have_caffeinate <- function() {
@@ -10,7 +7,7 @@ have_caffeinate <- function() {
 
 # Helper: terminate a process by PID with a short grace period.
 # First sends SIGTERM, then (after a delay) SIGKILL.
-terminate_process <- function(pid, grace_ms = 500L) {
+terminate_process_macos <- function(pid, grace_ms = 500L) {
   if (is.na(pid) || pid <= 0L) {
     return(invisible(NULL))
   }
@@ -55,14 +52,8 @@ terminate_process <- function(pid, grace_ms = 500L) {
 nosleep_on_macos <- function(keep_display = FALSE) {
   # Require caffeinate to be available, otherwise this backend is not functional.
   if (!have_caffeinate()) {
-    stop("NoSleepR: 'caffeinate' binary not found in PATH.")
-  }
-
-  pid <- .nosleep_macos_state$pid
-
-  # If there is already a tracked process, do not start a second one.
-  if (!is.na(pid) && pid > 0L) {
-    return(invisible(NULL))
+    warning("NoSleepR: 'caffeinate' not found in PATH; macOS backend is not available.")
+    return(NULL)
   }
 
   # Use a long but finite timeout so we do not keep the system awake forever
@@ -75,8 +66,7 @@ nosleep_on_macos <- function(keep_display = FALSE) {
     timeout_sec
   )
 
-  # Important: redirect caffeinate stdout/stderr to /dev/null, otherwise
-  # the pipe never gets EOF and system2() will block forever.
+  # Start caffeinate in the background and echo its PID.
   shell_cmd <- sprintf("%s >/dev/null 2>&1 & echo $!", base_cmd)
 
   out <- suppressWarnings(
@@ -93,7 +83,8 @@ nosleep_on_macos <- function(keep_display = FALSE) {
   )
 
   if (inherits(out, "try-error") || length(out) == 0L) {
-    stop("NoSleepR: failed to start 'caffeinate' via shell.")
+    warning("NoSleepR: failed to start 'caffeinate' via shell.")
+    return(NULL)
   }
 
   # PID should be the last non-empty line
@@ -109,20 +100,24 @@ nosleep_on_macos <- function(keep_display = FALSE) {
     stop("NoSleepR: invalid PID parsed for 'caffeinate' process.")
   }
 
-  .nosleep_macos_state$pid <- pid_num
-
-  invisible(NULL)
+  pid_num
 }
 
-# macOS backend: turn nosleep off by terminating the caffeinate process.
+# macOS backend: turn nosleep off for a specific PID returned by nosleep_on_macos()
 nosleep_off_macos <- function(pid) {
-  pid <- .nosleep_macos_state$pid
+  if (missing(pid) || is.null(pid)) {
+    return(invisible(NULL))
+  }
+
   if (is.na(pid) || pid <= 0L) {
     return(invisible(NULL))
   }
 
-  terminate_process(pid, grace_ms = 800L)
-  .nosleep_macos_state$pid <- NA_integer_
+  if (!is.integer(pid) && !is.numeric(pid)) {
+    stop("NoSleepR: 'pid' must be an integer PID returned by nosleep_on_macos().")
+  }
+
+  terminate_process_macos(pid, grace_ms = 800L)
 
   invisible(NULL)
 }
