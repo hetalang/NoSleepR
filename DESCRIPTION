@@ -1,6 +1,6 @@
 Package: NoSleepR
 Title: Prevent System Sleep During Long R Tasks
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: 
     person("Evgeny", "Metelkin", , "evgeny.metelkin@gmail.com", role = c("aut", "cre"))
 Description: Provides a cross-platform interface to prevent the operating system from going to sleep while long-running R tasks are executing.
