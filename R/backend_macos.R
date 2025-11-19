@@ -115,7 +115,7 @@ nosleep_on_macos <- function(keep_display = FALSE) {
 }
 
 # macOS backend: turn nosleep off by terminating the caffeinate process.
-nosleep_off_macos <- function() {
+nosleep_off_macos <- function(pid) {
   pid <- .nosleep_macos_state$pid
   if (is.na(pid) || pid <= 0L) {
     return(invisible(NULL))

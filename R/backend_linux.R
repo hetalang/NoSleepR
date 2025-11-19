@@ -1,8 +1,3 @@
-# Internal state for Linux backend stored in an environment.
-# We mutate the environment contents instead of rebinding package globals.
-.nosleep_linux_state <- new.env(parent = emptyenv())
-.nosleep_linux_state$pid <- NA_integer_
-
 # Check if systemd-inhibit is available in PATH.
 have_systemd_inhibit <- function() {
   nzchar(Sys.which("systemd-inhibit"))
@@ -52,17 +47,11 @@ terminate_process_linux <- function(pid, grace_ms = 500L) {
 
 # Linux backend: turn nosleep on using systemd-inhibit.
 # keep_display = TRUE -> use "sleep:idle", otherwise only "sleep".
+# Returns: integer PID on success, or NULL if backend is not available / failed.
 nosleep_on_linux <- function(keep_display = FALSE) {
   if (!have_systemd_inhibit()) {
     warning("NoSleepR: 'systemd-inhibit' not found in PATH; Linux backend is not available.")
-    return(invisible(NULL))
-  }
-
-  pid <- .nosleep_linux_state$pid
-
-  # If there is already a tracked process, do not start a second one.
-  if (!is.na(pid) && pid > 0L) {
-    return(invisible(NULL))
+    return(NULL)
   }
 
   what <- if (isTRUE(keep_display)) "sleep:idle" else "sleep"
@@ -92,7 +81,8 @@ nosleep_on_linux <- function(keep_display = FALSE) {
   )
 
   if (inherits(out, "try-error") || length(out) == 0L) {
-    stop("NoSleepR: failed to start 'systemd-inhibit' via shell.")
+    warning("NoSleepR: failed to start 'systemd-inhibit' via shell.")
+    return(NULL)
   }
 
   # PID should be the last non-empty line
@@ -108,20 +98,26 @@ nosleep_on_linux <- function(keep_display = FALSE) {
     stop("NoSleepR: invalid PID parsed for 'systemd-inhibit' process.")
   }
 
-  .nosleep_linux_state$pid <- pid_num
-
-  invisible(NULL)
+  pid_num
 }
 
-# Linux backend: turn nosleep off by terminating the systemd-inhibit process.
-nosleep_off_linux <- function() {
-  pid <- .nosleep_linux_state$pid
+# Linux backend: turn nosleep off for a specific PID.
+# This is called from the high-level interface with handle$data (PID).
+nosleep_off_linux <- function(pid) {
+  # Here we only handle a single PID; NULL or missing -> no-op.
+  if (missing(pid) || is.null(pid)) {
+    return(invisible(NULL))
+  }
+
   if (is.na(pid) || pid <= 0L) {
     return(invisible(NULL))
   }
 
+  if (!is.integer(pid) && !is.numeric(pid)) {
+    stop("NoSleepR: 'pid' must be an integer PID returned by nosleep_on_linux().")
+  }
+
   terminate_process_linux(pid, grace_ms = 800L)
-  .nosleep_linux_state$pid <- NA_integer_
 
   invisible(NULL)
 }
