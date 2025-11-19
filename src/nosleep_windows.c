@@ -7,6 +7,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
+#include <R_ext/Memory.h>  // for R_Calloc, R_Free
 
 // Per-request state stored behind an external pointer.
 // Each NoSleepRequest corresponds to a separate Power Request handle.
@@ -36,7 +37,7 @@ static void nosleep_finalizer(SEXP ext) {
         req->handle = NULL;
     }
 
-    Free(req);
+    R_Free(req);
     R_ClearExternalPtr(ext);
 }
 
@@ -86,7 +87,7 @@ SEXP NoSleepR_request_create(SEXP keep_display_sexp) {
         display = TRUE;
     }
 
-    NoSleepRequest *req = (NoSleepRequest*) Calloc(1, NoSleepRequest);
+    NoSleepRequest *req = (NoSleepRequest*) R_Calloc(1, NoSleepRequest);
     req->handle  = h;
     req->display = display;
 
@@ -118,7 +119,7 @@ SEXP NoSleepR_request_clear(SEXP ext) {
         req->handle = NULL;
     }
 
-    Free(req);
+    R_Free(req);
     R_ClearExternalPtr(ext);
 
     return R_NilValue;
