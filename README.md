@@ -75,6 +75,15 @@ with_nosleep(keep_display = TRUE, {
     - **Connect charger (AC mode)** to avoid this.
     - **OR use** `keep_display=TRUE` to keep the screen awake.
 
+## Remote sessions (SSH, Posit/RStudio Server)
+
+`NoSleepR` only affects the machine where R actually runs.
+If your code runs on a remote server, the package has no effect on your local computer — and it won't prevent disconnects in remote IDEs.
+
+Most "remote sleep" problems are actually connection timeouts, not the server going to sleep. This is normal: `NoSleepR` is designed for local laptops/desktops, not for managing network sessions.
+
+For reliable long runs on a remote server, use tools like `tmux`, `screen`, or built-in session-recovery mechanisms of your IDE. There's usually no need to keep your local machine awake.
+
 ## Related packages
 
 - **lares** — <https://github.com/laresbernardo/lares>  

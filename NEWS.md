@@ -1,4 +1,4 @@
-# Change Log
+# NoSleepR NEWS
 
 ## 0.1.0 - initial release
 
