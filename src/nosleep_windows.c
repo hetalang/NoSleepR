@@ -156,9 +156,21 @@ SEXP NoSleepR_request_clear(SEXP ext) {
     Rf_error("NoSleepR_request_clear: Windows backend is not available on this platform.");
 }
 
+// Even on non-Windows, it is good practice to register native routines
+// and disable dynamic symbol lookup to satisfy R CMD check.
+static const R_CallMethodDef CallEntries[] = {
+    { "NoSleepR_request_create", (DL_FUNC) &NoSleepR_request_create, 1 },
+    { "NoSleepR_request_clear",  (DL_FUNC) &NoSleepR_request_clear,  1 },
+    { NULL, NULL, 0 }
+};
+
 void R_init_NoSleepR(DllInfo *dll) {
-    (void) dll;
     // No registration for non-Windows; this file is not used there.
+    // (void) dll;
+
+    // register anyway to avoid R CMD check notes
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }
 
 #endif
