@@ -5,7 +5,7 @@
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](https://github.com/hetalang/NoSleepR/blob/master/LICENSE.md)
 [![CodeQL](https://github.com/hetalang/NoSleepR/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/hetalang/NoSleepR/actions/workflows/github-code-scanning/codeql)
 [![CRAN status](https://www.r-pkg.org/badges/version/NoSleepR)](https://cran.r-project.org/package=NoSleepR)
-<!--[![Downloads](https://cranlogs.r-pkg.org/badges/NoSleepR)](https://cran.r-project.org/package=NoSleepR)-->
+[![Downloads](https://cranlogs.r-pkg.org/badges/NoSleepR)](https://cran.r-project.org/package=NoSleepR)
 
 Prevent your computer from entering sleep mode while long-running R tasks are running — and automatically restore normal system behavior when they finish or fail.
 
