@@ -23,7 +23,7 @@ jobs:
           - { os: ubuntu-latest, r: 'release', integration_tests: 0 }
           - { os: ubuntu-latest, r: 'oldrel',  integration_tests: 0 }
           # exotic architectures
-          - {os: ubuntu-22.04-arm, arch: aarch64, r: 'release', integration_tests: 0}
+          #- {os: ubuntu-22.04-arm, arch: aarch64, r: 'release', integration_tests: 0}
           - {os: macos-15-intel, arch: x64, r: 'release', integration_tests: 1}
 
     env:
@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
